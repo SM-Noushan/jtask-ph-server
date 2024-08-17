@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
+const productsRoutes = require("./routes/productsRoutes");
 const cors = require("cors");
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(
 );
 
 app.use(bodyParser.json());
+app.use("/api", productsRoutes);
 
 app.get("/", (req, res) => {
   res.send("SuperShop Server Running");
