@@ -9,9 +9,22 @@ function generateRandomDate() {
   return new Date(randomTime).toISOString(); // Convert to ISO string
 }
 
-// Retrieve all tasks
+// retrieve product count
+const getAllProductsCount = async (req, res) => {
+  const searchTerm = req.query?.search || "";
+  // Create a case-insensitive regex for partial matching
+  const regex = new RegExp(searchTerm, "i"); // 'i' for case-insensitive
+  const productsCollection = await getProductsCollection();
+  const itemCount = await productsCollection.countDocuments({
+    title: { $regex: regex },
+  });
+  res.json({ itemCount });
+};
+
+// retrieve all products
 const getAllProducts = async (req, res) => {
   const searchTerm = req.query?.search || "";
+  const pageNo = req.query?.page || 1;
   // Create a case-insensitive regex for partial matching
   const regex = new RegExp(searchTerm, "i"); // 'i' for case-insensitive
   const productsCollection = await getProductsCollection();
@@ -27,10 +40,13 @@ const getAllProducts = async (req, res) => {
   };
   const products = await productsCollection
     .find({ title: { $regex: regex } }, { projection })
+    .skip((pageNo - 1) * 6)
+    .limit(6)
     .toArray();
   res.json(products);
 };
 
 module.exports = {
   getAllProducts,
+  getAllProductsCount,
 };
