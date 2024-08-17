@@ -11,21 +11,27 @@ function generateRandomDate() {
 
 // retrieve product count
 const getAllProductsCount = async (req, res) => {
-  const searchTerm = req.query?.search || "";
+  const searchTerm = req.query?.search || ""; //Get search value from query parameters
+  const minPrice = parseFloat(req.query?.minPrice) || 0; // Get minPrice from query parameters
+  const maxPrice = parseFloat(req.query?.maxPrice) || 2500; // Get maxPrice from query parameters
+
   // Create a case-insensitive regex for partial matching
   const regex = new RegExp(searchTerm, "i"); // 'i' for case-insensitive
   const productsCollection = await getProductsCollection();
   const itemCount = await productsCollection.countDocuments({
     title: { $regex: regex },
+    price: { $gte: minPrice, $lte: maxPrice },
   });
   res.json({ itemCount });
 };
 
 // retrieve all products
 const getAllProducts = async (req, res) => {
-  const searchTerm = req.query?.search || "";
-  const pageNo = parseInt(req.query?.page) || 1;
-  const sortOption = req.query?.sort || "default";
+  const searchTerm = req.query?.search || ""; //Get search value from query parameters
+  const pageNo = parseInt(req.query?.page) || 1; //Get currentPageNo value from query parameters
+  const sortOption = req.query?.sort || "default"; //Get sortBy value from query parameters
+  const minPrice = parseFloat(req.query?.minPrice) || 0; // Get minPrice from query parameters
+  const maxPrice = parseFloat(req.query?.maxPrice) || 2500; // Get maxPrice from query parameters
 
   // Define sorting criteria
   let sortCriteria = {}; // Default (no sorting)
@@ -53,7 +59,10 @@ const getAllProducts = async (req, res) => {
   };
   // console.log(sortOption);
   const products = await productsCollection
-    .find({ title: { $regex: regex } }, { projection })
+    .find(
+      { title: { $regex: regex }, price: { $gte: minPrice, $lte: maxPrice } },
+      { projection }
+    )
     .sort(sortCriteria)
     .skip((pageNo - 1) * 6)
     .limit(6)
