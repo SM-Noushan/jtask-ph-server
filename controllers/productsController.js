@@ -70,7 +70,34 @@ const getAllProducts = async (req, res) => {
   res.json(products);
 };
 
+// get category and brand
+const getCategoryAndBrand = async (req, res) => {
+  const productsCollection = await getProductsCollection();
+  console.log("object");
+  const result = await productsCollection
+    .aggregate([
+      {
+        $group: {
+          _id: null, // Grouping all documents together
+          categories: { $addToSet: "$category" }, // Add unique categories to an array
+          brands: { $addToSet: "$brand" }, // Add unique brands to an array
+        },
+      },
+      {
+        $project: {
+          _id: 0, // Exclude _id from the result
+          categories: 1,
+          brands: 1,
+        },
+      },
+    ])
+    .toArray();
+
+  res.json(result);
+};
+
 module.exports = {
   getAllProducts,
   getAllProductsCount,
+  getCategoryAndBrand,
 };
