@@ -24,9 +24,22 @@ const getAllProductsCount = async (req, res) => {
 // retrieve all products
 const getAllProducts = async (req, res) => {
   const searchTerm = req.query?.search || "";
-  const pageNo = req.query?.page || 1;
+  const pageNo = parseInt(req.query?.page) || 1;
+  const sortOption = req.query?.sort || "default";
+
+  // Define sorting criteria
+  let sortCriteria = {}; // Default (no sorting)
+  if (sortOption === "priceAsc") {
+    sortCriteria = { price: 1 }; // Price (Low to High)
+  } else if (sortOption === "priceDesc") {
+    sortCriteria = { price: -1 }; // Price (High to Low)
+  } else if (sortOption === "Date") {
+    sortCriteria = { "meta.createdAt": -1 }; // Date (Newest First)
+  }
+
   // Create a case-insensitive regex for partial matching
   const regex = new RegExp(searchTerm, "i"); // 'i' for case-insensitive
+
   const productsCollection = await getProductsCollection();
   const projection = {
     title: 1,
@@ -38,8 +51,10 @@ const getAllProducts = async (req, res) => {
     meta: { createdAt: 1 },
     thumbnail: 1,
   };
+  // console.log(sortOption);
   const products = await productsCollection
     .find({ title: { $regex: regex } }, { projection })
+    .sort(sortCriteria)
     .skip((pageNo - 1) * 6)
     .limit(6)
     .toArray();
