@@ -15,6 +15,7 @@ const getAllProductsCount = async (req, res) => {
   const minPrice = parseFloat(req.query?.minPrice) || 0; // Get minPrice from query parameters
   const maxPrice = parseFloat(req.query?.maxPrice) || 2500; // Get maxPrice from query parameters
   const brands = req.query?.brand ? req.query.brand.split(",") : []; // Get selected brands from query parameters
+  const categories = req.query?.category ? req.query.category.split(",") : []; // Get selected categories from query parameters
 
   // Create a case-insensitive regex for partial matching
   const regex = new RegExp(searchTerm, "i"); // 'i' for case-insensitive
@@ -27,6 +28,10 @@ const getAllProductsCount = async (req, res) => {
   // Add brand filter if any brands are selected
   if (brands?.length > 0) {
     filter.brand = { $in: brands }; // Filter products where the brand is in the selected list
+  }
+  // Add category filter if any brands are selected
+  if (categories?.length > 0) {
+    filter.category = { $in: categories }; // Filter products where the category is in the selected list
   }
 
   const productsCollection = await getProductsCollection();
@@ -42,6 +47,7 @@ const getAllProducts = async (req, res) => {
   const minPrice = parseFloat(req.query?.minPrice) || 0; // Get minPrice from query parameters
   const maxPrice = parseFloat(req.query?.maxPrice) || 2500; // Get maxPrice from query parameters
   const brands = req.query?.brand ? req.query.brand.split(",") : []; // Get selected brands from query parameters
+  const categories = req.query?.category ? req.query.category.split(",") : []; // Get selected categories from query parameters
 
   // Define sorting criteria
   let sortCriteria = {}; // Default (no sorting)
@@ -77,6 +83,10 @@ const getAllProducts = async (req, res) => {
   // Add brand filter if any brands are selected
   if (brands?.length > 0) {
     filter.brand = { $in: brands }; // Filter products where the brand is in the selected list
+  }
+  // Add category filter if any brands are selected
+  if (categories?.length > 0) {
+    filter.category = { $in: categories }; // Filter products where the category is in the selected list
   }
 
   const products = await productsCollection
