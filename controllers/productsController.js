@@ -14,14 +14,23 @@ const getAllProductsCount = async (req, res) => {
   const searchTerm = req.query?.search || ""; //Get search value from query parameters
   const minPrice = parseFloat(req.query?.minPrice) || 0; // Get minPrice from query parameters
   const maxPrice = parseFloat(req.query?.maxPrice) || 2500; // Get maxPrice from query parameters
+  const brands = req.query?.brand ? req.query.brand.split(",") : []; // Get selected brands from query parameters
 
   // Create a case-insensitive regex for partial matching
   const regex = new RegExp(searchTerm, "i"); // 'i' for case-insensitive
-  const productsCollection = await getProductsCollection();
-  const itemCount = await productsCollection.countDocuments({
+  // Build the query filter
+  let filter = {
     title: { $regex: regex },
     price: { $gte: minPrice, $lte: maxPrice },
-  });
+  };
+
+  // Add brand filter if any brands are selected
+  if (brands?.length > 0) {
+    filter.brand = { $in: brands }; // Filter products where the brand is in the selected list
+  }
+
+  const productsCollection = await getProductsCollection();
+  const itemCount = await productsCollection.countDocuments(filter);
   res.json({ itemCount });
 };
 
@@ -32,6 +41,7 @@ const getAllProducts = async (req, res) => {
   const sortOption = req.query?.sort || "default"; //Get sortBy value from query parameters
   const minPrice = parseFloat(req.query?.minPrice) || 0; // Get minPrice from query parameters
   const maxPrice = parseFloat(req.query?.maxPrice) || 2500; // Get maxPrice from query parameters
+  const brands = req.query?.brand ? req.query.brand.split(",") : []; // Get selected brands from query parameters
 
   // Define sorting criteria
   let sortCriteria = {}; // Default (no sorting)
@@ -57,12 +67,20 @@ const getAllProducts = async (req, res) => {
     meta: { createdAt: 1 },
     thumbnail: 1,
   };
-  // console.log(sortOption);
+
+  // Build the query filter
+  let filter = {
+    title: { $regex: regex },
+    price: { $gte: minPrice, $lte: maxPrice },
+  };
+
+  // Add brand filter if any brands are selected
+  if (brands?.length > 0) {
+    filter.brand = { $in: brands }; // Filter products where the brand is in the selected list
+  }
+
   const products = await productsCollection
-    .find(
-      { title: { $regex: regex }, price: { $gte: minPrice, $lte: maxPrice } },
-      { projection }
-    )
+    .find(filter, { projection })
     .sort(sortCriteria)
     .skip((pageNo - 1) * 6)
     .limit(6)
@@ -73,7 +91,6 @@ const getAllProducts = async (req, res) => {
 // get category and brand
 const getCategoryAndBrand = async (req, res) => {
   const productsCollection = await getProductsCollection();
-  console.log("object");
   const result = await productsCollection
     .aggregate([
       {
